@@ -1,5 +1,11 @@
 %% TOJ_Matlab_interface
-% DJC - 4-23-2018
+% DJC - 4-23-2018 - This is the MATLAB to TDT interface for the Temporal
+% Order Judgement task with sensory stimulation ECoG patients. Briefly,
+% after a baseline run of response timing is run, and the difference in
+% perception for cortical stimulation relative to haptic stimulation is
+% calculated, a distribution of induced differences between the two can be
+% generated below, and used to test the perception of relatively closely
+% timed DCS and haptic stimuli 
 
 % generate the delaysTotal which will be used for everything that follows
 generateTOJ_concatenated_forUseWithMATLAB
@@ -64,54 +70,70 @@ feltFirstVec = [];
 confidenceVec = [];
 delaysUsed = [];
 
-%%
+%% this is where the MATLAB/TDT communication primarily occurs
+
+% iterate through blocks
 while blockNum <= numBlocks
     
+    % iterate through trials in each block 
     while trial <= length(delayRangeRepped)
         
+        % wait until the stim button is pressed
         while ~DA.GetTargetVal('RZ5D.stimPressed')
             pause (0.1);
         end
+        
+        % set the trial number, and the delay for this trial in the TDT
         DA.SetTargetVal('RZ5D.trialNumber',iter);
         DA.SetTargetVal('RZ5D.delayReadIn',delaysTotal(iter));
         
+        % now waiting for user input to report results of that trial
         waitEnter = 1;
         while waitEnter
+             fprintf(['trial ' num2str(trial) '\n']);
             
+             % which was felt first? a "s" or "t" must be input, otherwise
+             % it keeps asking the user to input a valid entry
             feltFirst = input('Did they feel first? "s" or "t" ? \n','s');
             while isempty(feltFirst) | (feltFirst ~= 's' & feltFirst ~= 't')
                 feltFirst = input('Did they feel first? "s" or "t" ? \n','s');
             end
             
-            % write to TDT to make sure it's saved
+            % convert to numeric so it can be written to TDT
             if feltFirst == 's'
                 feltFirstNum = 0;
             elseif feltFirst =='t'
                 feltFirstNum = 1;
             end
-            
+           
+             % how confident was the patient? a value [1:5] must be input, otherwise
+             % it keeps asking the user to input a valid entry
             confidence = input('How confident? 1-5, 1 is not, 5 is very ? \n');
             while isempty(confidence) | ~sum(confidence == [1:5])
                 confidence = input('How confident? 1-5, 1 is not, 5 is very ? \n');
             end
             
+            % write to TDT
             DA.SetTargetVal('RZ5D.feltFirstNum',feltFirstNum);
             DA.SetTargetVal('RZ5D.confidence',confidence);
             
-            
+            % build up vector for saving 
             delaysUsed = [delaysUsed; delaysTotal(iter)];
             confidenceVec = [confidenceVec; confidence];
             feltFirstVec = [feltFirstVec; feltFirst];
             waitEnter = 0;
             
         end
-        
+        % build up vector for saving 
+
         iterVec = [iterVec; iter];
-        iter = iter + 1;
         trialVec = [trialVec; trial];
-        
+
+        % iterate trial and iteration
+        iter = iter + 1;
         trial = trial + 1;
     end
+    
     % first check that the TDT system is still in record mode, if not
     % then end the experiment early and save the variables
     if DA.GetSysMode ~= 3
@@ -120,6 +142,7 @@ while blockNum <= numBlocks
         return
     end
     
+    % after each block, plot it so we have an idea of what is going on
     figure
     plot(confidenceVec(feltFirstVec=='s'),delaysUsed(feltFirstVec == 's'),'o');
     hold on
@@ -128,7 +151,10 @@ while blockNum <= numBlocks
     ylabel('relative delay for stim to tactor')
     xlabel('confidence')
     
+    % reset the trials
     trial = 1;
+    
+    % build up vector of blocks
     blockVec = [blockVec; blockNum];
     blockNum = blockNum + 1;
 end
@@ -147,6 +173,6 @@ if DA.CheckServerConnection == 0
     disp('Server was disconnected');
 end
 
-%% Save
+%% Save the values
 Save_TOJ
 
