@@ -1,4 +1,8 @@
+%% DJC - run this script after doing a shortened response timing paradigm to
+% extract the latency in response times between cortical stimulation and
+% haptic touch, before doing a temporal order judgement task 
 %% load in subject
+
 clear all; clc
 addpath(genpath('C:\Users\gridlab\Desktop\Extract for Threshold'))
 
@@ -32,10 +36,6 @@ tact = Tact.data;
 fs_tact = Tact.info.SamplingRateHz;
 clear Tact
 
-valu = Valu.data;
-fs_valu = Valu.info.SamplingRateHz;
-
-clear Valu
 
 %% figure out stim times
 % vector of condition type - for first subject, looks like condition type
@@ -48,7 +48,6 @@ stimFromFile = tact(:,3);
 
 % button press, start being onset of stimulation marker
 trainTimes = find(stimFromFile~=0);
-
 
 % pick condition type where stimulation was delivered
 uniqueCond = unique(condType);

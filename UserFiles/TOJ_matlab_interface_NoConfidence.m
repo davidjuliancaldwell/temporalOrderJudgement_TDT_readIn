@@ -58,7 +58,6 @@ end
 
 % once satisfied, run it
 
-
 %% run it
 % initialize values
 iter = 1;
@@ -68,7 +67,6 @@ iterVec = [];
 trialVec = [];
 blockVec = [];
 feltFirstVec = [];
-confidenceVec = [];
 delaysUsed = [];
 
 %% this is where the MATLAB/TDT communication primarily occurs
@@ -78,17 +76,18 @@ while blockNum <= numBlocks
     
     % iterate through trials in each block
     while trial <= length(delayRangeRepped)
-       
+        
+        % set the feltFirstNum values to zero
+
         % wait until the stim button is pressed
         while ~DA.GetTargetVal('RZ5D.stimPressed')
             pause (0.1);
         end
         
-                % set the feltFirstNum and confidence values to zero
+                
         % write to TDT to reset to base so you can tell in
         % the recordings when things change
         DA.SetTargetVal('RZ5D.feltFirstNum',0);
-        DA.SetTargetVal('RZ5D.confidence',0);
         
         
         % set the trial number, and the delay for this trial in the TDT
@@ -114,22 +113,13 @@ while blockNum <= numBlocks
                 feltFirstNum = 2;
             end
             
-            % how confident was the patient? a value [1:5] must be input, otherwise
-            % it keeps asking the user to input a valid entry
-            confidence = input('How confident? 1-5, 1 is not, 5 is very ? \n');
-            while isempty(confidence) | ~sum(confidence == [1:5])
-                confidence = input('How confident? 1-5, 1 is not, 5 is very ? \n');
-            end
-            
-            disp('order and confidence entered');
+            disp('order entered');
             
             % write to TDT
             DA.SetTargetVal('RZ5D.feltFirstNum',feltFirstNum);
-            DA.SetTargetVal('RZ5D.confidence',confidence);
             
             % build up vector for saving
             delaysUsed = [delaysUsed; delaysTotal(iter)];
-            confidenceVec = [confidenceVec; confidence];
             feltFirstVec = [feltFirstVec; feltFirst];
             waitEnter = 0;
             
@@ -152,15 +142,6 @@ while blockNum <= numBlocks
         Save_TOJ
         return
     end
-    %%
-    % after each block, plot it so we have an idea of what is going on
-    figure
-    plot(confidenceVec(feltFirstVec=='s'),delaysUsed(feltFirstVec == 's'),'o');
-    hold on
-    plot(confidenceVec(feltFirstVec=='t'),delaysUsed(feltFirstVec == 't'),'o');
-    legend('stim first','tactor first')
-    ylabel('relative delay for stim to tactor')
-    xlabel('confidence')
     %%
     % after each block, also just plot delays vs. which was perceived first
     figure
