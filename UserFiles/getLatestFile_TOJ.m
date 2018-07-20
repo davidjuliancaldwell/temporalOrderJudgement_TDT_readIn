@@ -1,4 +1,4 @@
-function [filename] = getLatestFile(fileDir)
+function [filename] = getLatestFile_TOJ(fileDir)
 
 a = dir(fileDir);
 [~, index] = max([a.datenum]);

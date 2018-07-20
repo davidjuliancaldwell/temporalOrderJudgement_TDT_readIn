@@ -1,11 +1,12 @@
 %% TOJ_Matlab_interface
-% DJC - 4-23-2018 - This is the MATLAB to TDT interface for the Temporal
+% This is the MATLAB to TDT interface for the Temporal
 % Order Judgement task with sensory stimulation ECoG patients. Briefly,
 % after a baseline run of response timing is run, and the difference in
 % perception for cortical stimulation relative to haptic stimulation is
 % calculated, a distribution of induced differences between the two can be
 % generated below, and used to test the perception of relatively closely
 % timed DCS and haptic stimuli
+% David.J.Caldwell 4.23.2018 
 
 % generate the delaysTotal which will be used for everything that follows
 generateTOJ_concatenated_forUseWithMATLAB
@@ -155,9 +156,9 @@ while blockNum <= numBlocks
     %%
     % after each block, plot it so we have an idea of what is going on
     figure
-    plot(confidenceVec(feltFirstVec=='s'),delaysUsed(feltFirstVec == 's'),'o');
+    plot(confidenceVec(feltFirstVec=='s'),delaysUsed(feltFirstVec == 's'),'ko','markerfacecolor','r');
     hold on
-    plot(confidenceVec(feltFirstVec=='t'),delaysUsed(feltFirstVec == 't'),'o');
+    plot(confidenceVec(feltFirstVec=='t'),delaysUsed(feltFirstVec == 't'),'ko','markerfacecolor','b');
     legend('stim first','tactor first')
     ylabel('relative delay for stim to tactor')
     xlabel('confidence')
@@ -168,13 +169,23 @@ while blockNum <= numBlocks
     count = 1;
     for i = delaysUsedUniqueVec'
         totalProportion = sum(logical(delaysUsed(delaysUsed==i)));
-        totalProportionStimFirst(count) = sum(numel(feltFirstVec(feltFirstVec=='t' & delaysUsed==i)));
+        totalProportionStimFirst(count) = sum(numel(feltFirstVec(feltFirstVec=='s' & delaysUsed==i)))/totalProportion;
+        totalProportionTactorFirst(count) = sum(numel(feltFirstVec(feltFirstVec=='t' & delaysUsed==i)))/totalProportion;
         count = count + 1;
     end
-    
-    plot(delaysUsedUniqueVec, totalProportionStimFirst,'o');
-    ylabel('proprtion of stim first')
+    subplot(2,1,1)
+    plot(delaysUsedUniqueVec, totalProportionStimFirst,'ko','markerfacecolor','r');
+        ylabel('proportion felt DCS first')
     xlabel('delays used')
+        legend('felt DCS first')
+
+    subplot(2,1,2)
+    plot(delaysUsedUniqueVec,totalProportionTactorFirst,'ko','markerfacecolor','b');
+    ylabel('proportion felt haptic first')
+    xlabel('delays used')
+    legend('felt haptic  first')
+
+
     %%
     % reset the trials
     trial = 1;
